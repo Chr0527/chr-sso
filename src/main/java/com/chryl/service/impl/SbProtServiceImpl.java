@@ -92,6 +92,7 @@ public class SbProtServiceImpl implements SbProtService {
             throw new ResponseException(EnumError.PARAMETER_VALIDATION_ERROR);
         }
         SbInfo sbInfo = new SbInfo();
+        sbInfo.setSbId(sbId);
         sbInfo.setSbName(sbName);
         sbInfo.setSbType(sbType);
         sbInfo.setSbProtocolId(sbProtocolId);
