@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class SsoServiceImpl implements SsoService {
-    private static int redisExpireMinute = 1440;    // 1440 minite, 24 hour
+    private static int redisExpireMinute = 1440 * 5;    // 1440 minite, 24 hour
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
@@ -46,7 +46,8 @@ public class SsoServiceImpl implements SsoService {
                 TimeUnit.MINUTES);//分钟
         //存cookie
         //@param ifRemember    true: cookie not expire, false: expire when browser close （server cookie）
-        CookieUtil.set(response, Conf.SSO_SESSIONID, sessionId, true);
+        //setDef:为5天
+        CookieUtil.setDef(response, Conf.SSO_SESSIONID, sessionId, true);
         // 4、return, redirect sessionId
 
         return sessionId;
@@ -55,21 +56,19 @@ public class SsoServiceImpl implements SsoService {
 
     //1.验证cookie,有coolie:直接返回,没有remove,重新set,刷新redis
     @Override
-    public SsoUserModel loginCheck(HttpServletRequest request, HttpServletResponse response) {
-        //验证cookie,有就返回,无就remove,set
+    public SsoUserModel loginCheck(HttpServletRequest request, HttpServletResponse response) throws ResponseException {
+        //验证cookie值是否存在redis
         String cookieSessionId = CookieUtil.getValue(request, Conf.SSO_SESSIONID);
-        //验证cookie和redis
-        SsoUserModel ssoUserModel = checkCookieAndRedis(cookieSessionId);//userid_userversion
-        if (ssoUserModel != null) {//存在ssoModel直接返回
-            return ssoUserModel;
-        }
-        //cookie已过期,
-        SsoUserModel ssoUserModel1 = removeAndSetCookie(request, response, ssoUserModel);
+        //验证redis
+        SsoUserModel ssoUserModel = checkCookieAndRedis(cookieSessionId, request, response);//userid_userversion
 
-        if (ssoUserModel1 != null) {
-            return ssoUserModel1;
+        //redis已过期,清除cookie. remove old cookie
+        CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
+
+        if (ssoUserModel == null) {
+            throw new ResponseException(EnumError.SSO_LOGIN_CANCLE);
         }
-        return null;
+        return ssoUserModel;//存在ssoModel直接返回
     }
 
     @Override
@@ -85,27 +84,13 @@ public class SsoServiceImpl implements SsoService {
         String redisKey = packRedisKey(storeKey);
         if (redisKey != null) {
             stringRedisTemplate.delete(redisKey);
-//            SsoLoginStore.remove(storeKey);
         }
         CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
     }
 
-    //cookie已过期,remove-set
-    public SsoUserModel removeAndSetCookie(HttpServletRequest request, HttpServletResponse response, SsoUserModel ssoUserModel) {
-        // remove old cookie
-        CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
-        // set new cookie
-        String paramSessionId = request.getParameter(Conf.SSO_SESSIONID);
-        ssoUserModel = checkCookieAndRedis(paramSessionId);
-        if (ssoUserModel != null) {
-            CookieUtil.set(response, Conf.SSO_SESSIONID, paramSessionId, false);    // expire when browser close （client cookie）
-            return ssoUserModel;
-        }
-        return null;
-    }
 
     //验证redis和cookie
-    public SsoUserModel checkCookieAndRedis(String cookieSessionId) {//userid_userversion
+    public SsoUserModel checkCookieAndRedis(String cookieSessionId, HttpServletRequest request, HttpServletResponse response) {//userid_userversion
         //storeKey为userid
         String storeKey = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
         if (storeKey == null) {//没有该cookie值
@@ -114,20 +99,21 @@ public class SsoServiceImpl implements SsoService {
         //有cookie值
         //redis:根据key取value
         String redisJsonStrValue = stringRedisTemplate.opsForValue().get(packRedisKey(storeKey));//redis存储的为jsonString格式
-
         //redis 存ssoModel------------------------------
         SsoUserModel ssoUserModel = JSON.parseObject(redisJsonStrValue, SsoUserModel.class);
         if (ssoUserModel != null) {
             String userVersion = SsoSessionIdHelper.parseVersion(cookieSessionId);
-            if (ssoUserModel.getUserVersion().equals(userVersion)) {//对比redis中的version和cookie中的version是否一样
 
+            if (ssoUserModel.getUserVersion().equals(userVersion)) {//对比redis中的version和cookie中的version是否一样
                 // After the expiration time has passed half, Auto refresh(过期时间过半刷新)
                 if ((System.currentTimeMillis() - ssoUserModel.getExpireFreshTime()) > ssoUserModel.getExpireMinute() * 60 * 1000 >> 1) {//redis存的minute
                     ssoUserModel.setExpireFreshTime(System.currentTimeMillis());
                     stringRedisTemplate.opsForValue().set(storeKey, //
                             JSON.toJSONString(ssoUserModel),//
-                            1440,//分钟
+                            1440 * 5,//分钟
                             TimeUnit.MINUTES);
+                    //重新更新5天
+                    CookieUtil.setDef(response, Conf.SSO_SESSIONID, cookieSessionId, true);
                 }
                 return ssoUserModel;
             }

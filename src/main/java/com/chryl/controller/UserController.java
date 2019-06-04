@@ -8,6 +8,9 @@ import com.chryl.response.error.ResponseException;
 import com.chryl.service.SsoService;
 import com.chryl.service.UserService;
 import com.chryl.service.model.UserModel;
+import com.chryl.sso.Conf;
+import com.chryl.sso.CookieUtil;
+import com.chryl.sso.SsoSessionIdHelper;
 import com.chryl.sso.SsoUserModel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +71,7 @@ public class UserController extends BaseController {
     }
 
     @RequestMapping(value = "/checkLogin")
-    public ReturnResult checkLogin(HttpServletResponse response, HttpServletRequest request) {
+    public ReturnResult checkLogin(HttpServletResponse response, HttpServletRequest request) throws ResponseException {
         //login check:check的话一定有cookie值为userId_userVersion
         ssoService.loginCheck(request, response);
 
@@ -82,6 +85,8 @@ public class UserController extends BaseController {
     }
 
 
+
+    //##################################################################
     /**
      * 无法转换成功,存储jsonString即可成功
      */
@@ -89,11 +94,20 @@ public class UserController extends BaseController {
     private StringRedisTemplate stringRedisTemplate;
 
     @RequestMapping("/tes")
-    public ReturnResult rt() {
-        String s = stringRedisTemplate.opsForValue().get("sso_sessionid#2c9c1c0a0ef74ee8802e42116fd31d88");
+    public ReturnResult rt(HttpServletRequest request) {
+        String redisJsonStrValue = stringRedisTemplate.opsForValue().get("sso_sessionid#2c9c1c0a0ef74ee8802e42116fd31d88");
 
-        SsoUserModel ssoUserModel = JSON.parseObject(s, SsoUserModel.class);
+        SsoUserModel ssoUserModel = JSON.parseObject(redisJsonStrValue, SsoUserModel.class);
+
+
         System.out.println(ssoUserModel);
+
+
+        String cookieSessionId = CookieUtil.getValue(request, Conf.SSO_SESSIONID);
+        String version = SsoSessionIdHelper.parseVersion(cookieSessionId);
+        if (ssoUserModel.getUserVersion().equals(version)) {
+            System.err.println("==============");
+        }
         return ReturnResult.create(ssoUserModel);
 
 //        return ReturnResult.create(s);
