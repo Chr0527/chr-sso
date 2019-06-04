@@ -125,7 +125,7 @@ public class SsoServiceImpl implements SsoService {
                 if ((System.currentTimeMillis() - ssoUserModel.getExpireFreshTime()) > ssoUserModel.getExpireMinute() * 60 * 1000 >> 1) {//redis存的minute
                     ssoUserModel.setExpireFreshTime(System.currentTimeMillis());
                     stringRedisTemplate.opsForValue().set(storeKey, //
-                            ssoUserModel.toString(), //
+                            JSON.toJSONString(ssoUserModel),//
                             1440,//分钟
                             TimeUnit.MINUTES);
                 }
@@ -158,6 +158,7 @@ public class SsoServiceImpl implements SsoService {
 
     /**
      * 测试存储jsonString
+     *
      * @param args
      */
     public static void main(String args[]) {
