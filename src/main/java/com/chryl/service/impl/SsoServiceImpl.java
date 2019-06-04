@@ -156,6 +156,10 @@ public class SsoServiceImpl implements SsoService {
         return ssoUserModel;
     }
 
+    /**
+     * 测试存储jsonString
+     * @param args
+     */
     public static void main(String args[]) {
         SsoUserModel ssoUserModel = new SsoUserModel();
         ssoUserModel.setUserVersion("asdsadsadasdasdad");
