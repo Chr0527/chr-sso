@@ -40,7 +40,7 @@ public class SsoServiceImpl implements SsoService {
         }
         //存入redis,存入coolie
         stringRedisTemplate.opsForValue().set(
-                redisKey(storeKey),//
+                packRedisKey(storeKey),//
                 JSON.toJSONString(ssoUserModel),//存储jsonString
                 redisExpireMinute,//
                 TimeUnit.MINUTES);//分钟
@@ -82,7 +82,7 @@ public class SsoServiceImpl implements SsoService {
         //清除redis
         String storeKey = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
         //redisKey
-        String redisKey = redisKey(storeKey);
+        String redisKey = packRedisKey(storeKey);
         if (redisKey != null) {
             stringRedisTemplate.delete(redisKey);
 //            SsoLoginStore.remove(storeKey);
@@ -113,7 +113,7 @@ public class SsoServiceImpl implements SsoService {
         }
         //有cookie值
         //redis:根据key取value
-        String redisJsonStrValue = stringRedisTemplate.opsForValue().get(redisKey(storeKey));//redis存储的为jsonString格式
+        String redisJsonStrValue = stringRedisTemplate.opsForValue().get(packRedisKey(storeKey));//redis存储的为jsonString格式
 
         //redis 存ssoModel------------------------------
         SsoUserModel ssoUserModel = JSON.parseObject(redisJsonStrValue, SsoUserModel.class);
@@ -136,8 +136,8 @@ public class SsoServiceImpl implements SsoService {
     }
 
 
-    //redisKey:sso_sessionid#userid
-    private static String redisKey(String sessionId) {
+    //packRedisKey:sso_sessionid#userid
+    private static String packRedisKey(String sessionId) {
         if (sessionId == null) {
             return null;
         }
