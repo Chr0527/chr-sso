@@ -71,6 +71,24 @@ public class SsoServiceImpl implements SsoService {
         return null;
     }
 
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        //清除cookie
+        String cookieSessionId = CookieUtil.getValue(request, Conf.SSO_SESSIONID);
+        if (cookieSessionId == null) {
+            return;
+        }
+        //清除redis
+        String storeKey = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
+        //redisKey
+        String redisKey = redisKey(storeKey);
+        if (redisKey != null) {
+            stringRedisTemplate.delete(redisKey);
+//            SsoLoginStore.remove(storeKey);
+        }
+        CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
+    }
+
     //cookie已过期,remove-set
     public SsoUserModel removeAndSetCookie(HttpServletRequest request, HttpServletResponse response, SsoUserModel ssoUserModel) {
         // remove old cookie
@@ -116,6 +134,9 @@ public class SsoServiceImpl implements SsoService {
 
     //redisKey:sso_sessionid#userid
     private static String redisKey(String sessionId) {
+        if (sessionId == null) {
+            return null;
+        }
         return Conf.SSO_SESSIONID.concat("#").concat(sessionId);
     }
 

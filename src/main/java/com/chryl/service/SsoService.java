@@ -15,4 +15,6 @@ public interface SsoService {
     String doSso(HttpServletResponse response, UserModel userModel) throws ResponseException;
 
     SsoUserModel loginCheck(HttpServletRequest request, HttpServletResponse response);
+
+    void logout(HttpServletRequest request, HttpServletResponse response);
 }

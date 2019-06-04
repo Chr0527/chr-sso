@@ -29,7 +29,7 @@ public class UserController extends BaseController {
     private UserService userService;
     @Autowired
     private SsoService ssoService;
-    
+
     @RequestMapping(value = "/register/{userName}/{userPassword}/{userPhone}"/*, method = RequestMethod.POST*/)
     public ReturnResult register(@PathVariable("userName") String userName,//
                                  @PathVariable("userPassword") String userPassword,//
@@ -70,6 +70,12 @@ public class UserController extends BaseController {
         ssoService.loginCheck(request, response);
 
 
+        return ReturnResult.create(null);
+    }
+
+    @RequestMapping("/logout")
+    public ReturnResult logout(HttpServletRequest request, HttpServletResponse response) {
+        ssoService.logout(request, response);
         return ReturnResult.create(null);
     }
 }
