@@ -42,4 +42,13 @@ public class SsoUserModel extends UserInfo implements Serializable {
     public void setExpireFreshTime(long expireFreshTime) {
         this.expireFreshTime = expireFreshTime;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "userVersion='" + userVersion + '\'' +
+                ", expireMinute=" + expireMinute +
+                ", expireFreshTime=" + expireFreshTime +
+                '}';
+    }
 }

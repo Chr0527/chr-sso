@@ -10,13 +10,14 @@ public class SsoSessionIdHelper {
      * @param ssoUserModel
      * @return
      */
-    public static String makeSessionId(SsoUserModel ssoUserModel) {//userid_userVersion
+    public static String makeSessionId(SsoUserModel ssoUserModel) {
+        //userid_userVersion
         String sessionId = ssoUserModel.getUserId().concat("_").concat(ssoUserModel.getUserVersion());
         return sessionId;
     }
 
     /**
-     * parse storeKey from sessionId
+     * parse storeKey from sessionId:userId
      *
      * @param sessionId
      * @return
@@ -35,7 +36,7 @@ public class SsoSessionIdHelper {
     }
 
     /**
-     * parse version from sessionId
+     * parse version from sessionId:userVersion
      *
      * @param sessionId
      * @return
