@@ -41,7 +41,7 @@ public class SsoServiceImpl implements SsoService {
         //存入redis,存入coolie
         stringRedisTemplate.opsForValue().set(
                 redisKey(storeKey),//
-                ssoUserModel.toString(),//
+                JSON.toJSONString(ssoUserModel),//存储jsonString
                 redisExpireMinute,//
                 TimeUnit.MINUTES);//分钟
         //存cookie
@@ -113,12 +113,10 @@ public class SsoServiceImpl implements SsoService {
         }
         //有cookie值
         //redis:根据key取value
-        String redisValue = stringRedisTemplate.opsForValue().get(redisKey(storeKey));
-        /**
-         * 无法转换成功
-         */
+        String redisJsonStrValue = stringRedisTemplate.opsForValue().get(redisKey(storeKey));//redis存储的为jsonString格式
+
         //redis 存ssoModel------------------------------
-        SsoUserModel ssoUserModel = JSON.parseObject(redisValue, SsoUserModel.class);
+        SsoUserModel ssoUserModel = JSON.parseObject(redisJsonStrValue, SsoUserModel.class);
         if (ssoUserModel != null) {
             String userVersion = SsoSessionIdHelper.parseVersion(cookieSessionId);
             if (ssoUserModel.getUserVersion().equals(userVersion)) {//对比redis中的version和cookie中的version是否一样
@@ -156,5 +154,16 @@ public class SsoServiceImpl implements SsoService {
         ssoUserModel.setExpireFreshTime(System.currentTimeMillis());
         ssoUserModel.setExpireMinute(redisExpireMinute);
         return ssoUserModel;
+    }
+
+    public static void main(String args[]) {
+        SsoUserModel ssoUserModel = new SsoUserModel();
+        ssoUserModel.setUserVersion("asdsadsadasdasdad");
+        ssoUserModel.setExpireFreshTime(System.currentTimeMillis());
+        ssoUserModel.setExpireMinute(redisExpireMinute);
+
+        String s = JSON.toJSONString(ssoUserModel);
+        SsoUserModel ssoUserModel1 = JSON.parseObject(s, SsoUserModel.class);
+        System.out.println(ssoUserModel1);
     }
 }

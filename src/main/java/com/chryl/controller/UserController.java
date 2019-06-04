@@ -1,5 +1,6 @@
 package com.chryl.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.chryl.response.ReturnResult;
 import com.chryl.response.error.BaseController;
 import com.chryl.response.error.EnumError;
@@ -7,6 +8,7 @@ import com.chryl.response.error.ResponseException;
 import com.chryl.service.SsoService;
 import com.chryl.service.UserService;
 import com.chryl.service.model.UserModel;
+import com.chryl.sso.SsoUserModel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -81,7 +83,7 @@ public class UserController extends BaseController {
 
 
     /**
-     * 无法转换成功
+     * 无法转换成功,存储jsonString即可成功
      */
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -89,12 +91,11 @@ public class UserController extends BaseController {
     @RequestMapping("/tes")
     public ReturnResult rt() {
         String s = stringRedisTemplate.opsForValue().get("sso_sessionid#2c9c1c0a0ef74ee8802e42116fd31d88");
-//        String s1 = JSON.toJSONString(s);
-//
-//        SsoUserModel ssoUserModel = JSON.parseObject(s1, SsoUserModel.class);
-//        System.out.println(ssoUserModel);
-//        return ReturnResult.create(ssoUserModel);
 
-        return ReturnResult.create(s);
+        SsoUserModel ssoUserModel = JSON.parseObject(s, SsoUserModel.class);
+        System.out.println(ssoUserModel);
+        return ReturnResult.create(ssoUserModel);
+
+//        return ReturnResult.create(s);
     }
 }
