@@ -78,12 +78,12 @@ public class UserController extends BaseController {
         return ReturnResult.create(null);
     }
 
-    @RequestMapping("/logout")
-    public ReturnResult logout(HttpServletRequest request, HttpServletResponse response) {
-        ssoService.logout(request, response);
+    @RequestMapping("/logout/{userId}")
+    public ReturnResult logout(HttpServletRequest request, HttpServletResponse response,//
+                               @PathVariable("userId") String userId) {
+        ssoService.logout(request, response,userId);
         return ReturnResult.create(null);
     }
-
 
 
     //##################################################################

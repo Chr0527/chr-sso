@@ -72,20 +72,23 @@ public class SsoServiceImpl implements SsoService {
     }
 
     @Override
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
+    public void logout(HttpServletRequest request, HttpServletResponse response, String userId) {
         //清除cookie
         String cookieSessionId = CookieUtil.getValue(request, Conf.SSO_SESSIONID);
         if (cookieSessionId == null) {
             return;
         }
-        //清除redis
-        String storeKey = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
-        //redisKey
-        String redisKey = packRedisKey(storeKey);
-        if (redisKey != null) {
-            stringRedisTemplate.delete(redisKey);
+        String cooUserId = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
+        if (cooUserId.equals(userId)) {//cookie与userId
+            //清除redis
+            String storeKey = SsoSessionIdHelper.parseStoreKey(cookieSessionId);
+            //redisKey
+            String redisKey = packRedisKey(storeKey);
+            if (redisKey != null) {
+                stringRedisTemplate.delete(redisKey);
+            }
+            CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
         }
-        CookieUtil.remove(request, response, Conf.SSO_SESSIONID);
     }
 
 

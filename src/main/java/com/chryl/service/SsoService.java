@@ -16,5 +16,5 @@ public interface SsoService {
 
     SsoUserModel loginCheck(HttpServletRequest request, HttpServletResponse response) throws ResponseException;
 
-    void logout(HttpServletRequest request, HttpServletResponse response);
+    void logout(HttpServletRequest request, HttpServletResponse response,String userId);
 }

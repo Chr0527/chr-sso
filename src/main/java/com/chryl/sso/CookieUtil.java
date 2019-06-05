@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 public class CookieUtil {
 
     // 默认缓存时间,单位/秒, 2H
-	private static final int COOKIE_MAX_AGE = Integer.MAX_VALUE;
-    //修改时间
+    private static final int COOKIE_MAX_AGE = Integer.MAX_VALUE;
+    //保存5天
     private static final int COOKIE_DEF_AGE = 5 * 24 * 60 * 60;
     // 保存路径,根路径
     private static final String COOKIE_PATH = "/";
@@ -30,10 +30,20 @@ public class CookieUtil {
         int age = ifRemember ? COOKIE_MAX_AGE : -1;
         set(response, key, value, null, COOKIE_PATH, age, true);
     }
+
+    /**
+     * 保存5天
+     *
+     * @param response
+     * @param key
+     * @param value
+     * @param ifRemember
+     */
     public static void setDef(HttpServletResponse response, String key, String value, boolean ifRemember) {
         int age = ifRemember ? COOKIE_DEF_AGE : -1;
         set(response, key, value, null, COOKIE_PATH, age, true);
     }
+
     /**
      * 保存
      *
